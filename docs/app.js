@@ -60,13 +60,25 @@ function studentCycle(st) {
   if (st.ngay_qd) { const a = ymd(st.ngay_qd)[1]; const b = ((a + 6 - 1) % 12) + 1; return [...new Set([a, b])].sort((x, y) => x - y); }
   return [];
 }
+// Sau khi đã seminar cấp Khoa, NCS không còn phải báo cáo 6 tháng
+function reportStop(st) {
+  if (!DB) return null;
+  const m = DB.milestones.filter((x) => x.student_id === st.id && x.loai === 'Seminar cấp Khoa' && x.ngay_thuc_hien).map((x) => x.ngay_thuc_hien).sort()[0];
+  return m || null;
+}
 function duePeriods(st, today = todayISO()) {
   const months = studentCycle(st); if (!st.ngay_qd || !months.length) return [];
+  const stop = reportStop(st);
   const [qy, qm] = ymd(st.ngay_qd); const [ty, tm] = ymd(today);
-  const out = []; let t = qy * 12 + (qm - 1) + 1; const end = ty * 12 + (tm - 1);
+  const out = []; let t = qy * 12 + (qm - 1) + 1; let end = ty * 12 + (tm - 1);
+  if (stop) { const [sy, sm] = ymd(stop); end = Math.min(end, sy * 12 + sm - 2); }
   for (; t <= end; t++) { const y = Math.floor(t / 12); const m = t % 12 + 1; if (months.includes(m)) out.push(`${y}-${pad(m)}`); }
   return out;
 }
+const pIdx = (p) => { const [y, m] = p.split('-').map(Number); return y * 12 + m - 1; };
+// Báo cáo thực tế có thể tổ chức lệch tháng so với chu kỳ: chấp nhận lệch tối đa 2 tháng
+const reportFor = (st, p) => DB.reports.filter((r) => r.student_id === st.id && r.da_nop && r.ky && Math.abs(pIdx(r.ky) - pIdx(p)) <= 2)
+  .sort((a, b) => Math.abs(pIdx(a.ky) - pIdx(p)) - Math.abs(pIdx(b.ky) - pIdx(p)))[0] || null;
 const periodLabel = (p) => { if (!p) return ''; const [y, m] = p.split('-'); return `T${+m}/${y}`; };
 
 // ============================================================ dữ liệu
@@ -195,9 +207,8 @@ function enrich(st, today = todayISO()) {
   const done = ms.filter((m) => m.ngay_thuc_hien).sort((a, b) => b.ngay_thuc_hien.localeCompare(a.ngay_thuc_hien));
   e.last_milestone = done[0] || null;
   const periods = duePeriods(st, today);
-  const sub = new Set(DB.reports.filter((r) => r.student_id === st.id && r.da_nop).map((r) => r.ky));
   e.cycle = studentCycle(st); e.last_period = periods[periods.length - 1] || null;
-  e.last_period_ok = e.last_period ? sub.has(e.last_period) : true;
+  e.last_period_ok = e.last_period ? !!reportFor(st, e.last_period) : true;
   return e;
 }
 function alerts() {
@@ -558,7 +569,7 @@ function vStudentDetail(id) {
     <ul class="timeline">${ms}</ul></div>
   <div class="card"><h2 style="margin-top:0">Báo cáo 6 tháng</h2>
     ${periods.length ? `<table><thead><tr><th>Kỳ</th><th>Tình trạng</th><th>Ngày nộp</th><th>Ghi chú</th></tr></thead><tbody>
-      ${periods.map((p) => { const r = reps[p] || {}; return `<tr><td><a href="#/bao-cao?ky=${p}">${periodLabel(p)}</a></td><td>${r.da_nop ? tag('đã nộp', 'ok') : tag('chưa ghi nhận', 'warn')}</td><td>${fmtDate(r.ngay_nop)}</td><td>${esc(r.ghi_chu || '')}</td></tr>`; }).join('')}
+      ${periods.map((p) => { const r = reps[p] && reps[p].da_nop ? reps[p] : (reportFor(st, p) || reps[p] || {}); return `<tr><td><a href="#/bao-cao?ky=${p}">${periodLabel(p)}</a></td><td>${r.da_nop ? tag('đã nộp', 'ok') : tag('chưa ghi nhận', 'warn')}</td><td>${fmtDate(r.ngay_nop)}</td><td>${esc(r.ghi_chu || '')}</td></tr>`; }).join('')}
     </tbody></table>` : '<p class="small">Chưa đến kỳ báo cáo nào (hoặc thiếu ngày QĐ / chu kỳ).</p>'}</div>`;
 }
 
@@ -608,6 +619,7 @@ function reportRows(period) {
   const [y, m] = period.split('-').map(Number); const pStart = y * 12 + m - 1;
   return DB.students.filter((st) => {
     if (!isActive(st) || !studentCycle(st).includes(m) || !st.ngay_qd) return false;
+    const stop = reportStop(st); if (stop) { const [sy, sm] = ymd(stop); if (sy * 12 + sm - 1 <= pStart) return false; }
     const [qy, qm] = ymd(st.ngay_qd); return qy * 12 + qm - 1 < pStart;
   }).sort((a, b) => (a.khoa || '').localeCompare(b.khoa || '') || byName(a, b))
     .map((st) => ({ st, rep: DB.reports.find((r) => r.student_id === st.id && r.ky === period) || {} }));
