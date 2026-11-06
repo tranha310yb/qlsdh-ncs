@@ -1,5 +1,19 @@
 # Quản lý NCS – Khoa Giáo dục, ĐHBK Hà Nội
 
+## 👉 Dùng ngay trên web: https://tranha310yb.github.io/qlsdh-ncs/
+
+Phiên bản web nằm trong thư mục `docs/` và chạy trên **GitHub Pages**. Không cần cài đặt, không cần máy chủ: GitHub tự cập nhật trang mỗi khi mã trong `docs/` thay đổi.
+
+- **Dữ liệu không đưa lên GitHub hay bất kỳ máy chủ nào.** Dữ liệu nằm ngay trong trình duyệt (IndexedDB), tắt máy hay đóng trình duyệt cũng không mất.
+- **Nên làm:** vào **Dữ liệu → Tạo file dữ liệu mới** (dùng Chrome hoặc Edge). Ứng dụng sẽ tự ghi mọi thay đổi vào một file `.json` trên máy. Đặt file này trong OneDrive hoặc Google Drive để luôn có bản sao, và để mở được trên máy khác (dùng nút **Mở file dữ liệu có sẵn**).
+- Mỗi lần mở lại trình duyệt, bấm **Kết nối lại file** một lần để cấp lại quyền ghi.
+- Trình duyệt tự giữ bản sao lưu hằng ngày (30 ngày gần nhất). Có thể nhập file Excel theo dõi NCS hiện có và xuất ra Excel.
+- Lưu ý: dữ liệu gắn với từng trình duyệt trên từng máy. Muốn dùng chung giữa nhiều người hay nhiều máy, hãy dùng chung file `.json` (ví dụ qua OneDrive), hoặc dùng phiên bản máy chủ bên dưới.
+
+---
+
+## Phiên bản chạy trên máy cá nhân / máy chủ (Python Flask)
+
 Ứng dụng web chạy trên máy cá nhân, dùng để quản lý hồ sơ và theo dõi tiến độ nghiên cứu sinh. Ứng dụng thay cho file Excel “Theo dõi tiến độ NCS”.
 
 - Chạy hoàn toàn trên máy của bạn, không cần Internet hay máy chủ.

@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quản lý NCS · Khoa Giáo dục</title>
+<link rel="stylesheet" href="style.css">
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+</head>
+<body>
+<aside class="side">
+  <div class="brand">QUẢN LÝ NCS<small>Khoa Giáo dục · ĐHBK Hà Nội</small></div>
+  <nav id="nav">
+    <a href="#/" data-r="">Tổng quan</a>
+    <a href="#/ncs" data-r="ncs">Hồ sơ NCS</a>
+    <a href="#/tien-do" data-r="tien-do">Bảng tiến độ</a>
+    <a href="#/bao-cao" data-r="bao-cao">Báo cáo 6 tháng</a>
+    <a href="#/thanh-toan" data-r="thanh-toan">Hội đồng & thanh toán</a>
+    <a href="#/cbhd" data-r="cbhd">Cán bộ hướng dẫn</a>
+    <div class="sep"></div>
+    <a href="#/du-lieu" data-r="du-lieu">Dữ liệu: nhập / xuất / lưu file</a>
+    <a href="#/cai-dat" data-r="cai-dat">Cài đặt</a>
+    <a href="#/nhat-ky" data-r="nhat-ky">Nhật ký</a>
+  </nav>
+  <div id="savestate" class="savestate"></div>
+</aside>
+<main>
+  <div id="banner"></div>
+  <div id="flash"></div>
+  <div id="app"><p class="small">Đang tải…</p></div>
+</main>
+<script src="app.js"></script>
+</body>
+</html>
