@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Đăng nhập · Quản lý NCS</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body style="align-items:center;justify-content:center;background:#2a1414">
+<div class="card" style="width:360px;padding:28px">
+  <h1 style="margin-bottom:2px">Quản lý NCS</h1>
+  <p class="sub">Khoa Giáo dục · ĐHBK Hà Nội</p>
+  {% with msgs = get_flashed_messages(with_categories=true) %}
+    {% for cat, m in msgs %}<div class="flash {{ cat }}">{{ m }}</div>{% endfor %}
+  {% endwith %}
+  <form method="post">
+    <label>Mật khẩu</label>
+    <input type="password" name="password" autofocus required>
+    <p><button class="btn pri" style="width:100%">Đăng nhập</button></p>
+  </form>
+</div>
+</body>
+</html>

@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block title %}{{ e.ho_ten }}{% endblock %}
+{% block content %}
+<div class="bar">
+  <div class="grow"><h1>{{ e.ho_ten }}</h1>
+    <span class="tag {{ 'blue' if e.active }}">{{ e.trang_thai }}</span>
+    <span class="small">Mã {{ e.ma_ncs or '—' }} · Khoá {{ e.khoa or '—' }} · {{ e.nhom_cm or 'chưa phân nhóm' }}</span></div>
+  <a class="btn" href="{{ url_for('student_edit', sid=e.id) }}">Sửa hồ sơ</a>
+  <form method="post" action="{{ url_for('student_delete', sid=e.id) }}" onsubmit="return confirm('Xoá NCS này cùng toàn bộ mốc và báo cáo? (Có thể khôi phục từ bản sao lưu)')">
+    <button class="btn danger">Xoá</button></form>
+</div>
+
+<div class="grid g2">
+  <div class="card">
+    <dl class="info">
+      <dt>Đề tài</dt><dd><b>{{ e.de_tai or '—' }}</b></dd>
+      <dt>CBHD 1</dt><dd>{% if e.cbhd1 %}<a href="{{ url_for('supervisor_edit', cid=e.cbhd1.id) }}">{{ sup_name(e.cbhd1) }}</a>{% else %}—{% endif %}</dd>
+      <dt>CBHD 2</dt><dd>{% if e.cbhd2 %}<a href="{{ url_for('supervisor_edit', cid=e.cbhd2.id) }}">{{ sup_name(e.cbhd2) }}</a>{% if e.cbhd2_ngoai %} <span class="tag">ngoài trường</span>{% endif %}{% else %}—{% endif %}</dd>
+      <dt>Ngày sinh</dt><dd>{{ e.ngay_sinh|d or '—' }}</dd>
+      <dt>Cơ quan công tác</dt><dd>{{ e.co_quan or '—' }}</dd>
+      <dt>Email</dt><dd>{{ e.email_ca_nhan or '' }}{% if e.email_sis %}<br>{{ e.email_sis }}{% endif %}</dd>
+      <dt>Điện thoại</dt><dd>{{ e.dien_thoai or '—' }}</dd>
+    </dl>
+  </div>
+  <div class="card">
+    <dl class="info">
+      <dt>QĐ công nhận</dt><dd>{{ e.so_qd or '—' }} {% if e.ngay_qd %}ngày {{ e.ngay_qd|d }}{% endif %}</dd>
+      <dt>Thời gian đào tạo</dt><dd>{{ e.thoi_gian_dao_tao or '—' }} năm</dd>
+      <dt>Hạn kết thúc</dt><dd>{{ e.end_date|d or '—' }}
+        {% if e.gia_han_den %}<span class="tag">đã gia hạn</span>{% endif %}
+        {% if e.active and e.months_left is not none %}
+          {% if e.months_left < 0 %}<span class="tag bad">quá hạn {{ -e.months_left }} tháng</span>
+          {% elif e.months_left <= settings.warn_months_before_end %}<span class="tag warn">còn {{ e.months_left }} tháng</span>
+          {% else %}<span class="small">còn {{ e.months_left }} tháng</span>{% endif %}{% endif %}</dd>
+      <dt>Chu kỳ BC 6 tháng</dt><dd>{{ e.cycle|cycle or '—' }}</dd>
+      <dt>Kế hoạch tiếp theo</dt><dd>{{ e.ke_hoach or '—' }}</dd>
+      <dt>Ghi chú</dt><dd style="white-space:pre-wrap">{{ e.ghi_chu or '—' }}</dd>
+    </dl>
+  </div>
+</div>
+
+<div class="card">
+  <div class="bar"><h2 class="grow" style="margin:0">Tiến độ theo mốc <span class="small">({{ e.done_count }}/{{ e.milestones|length }} đã xong)</span></h2>
+    <form method="post" action="{{ url_for('student_generate', sid=e.id) }}"><button class="btn" title="Thêm các mốc chuẩn còn thiếu, hạn tính từ ngày QĐ">Tạo lộ trình mốc chuẩn</button></form>
+    <a class="btn pri" href="{{ url_for('milestone_edit', student_id=e.id) }}">+ Thêm mốc / hoạt động</a></div>
+  {% if not e.milestones %}<p class="small">Chưa có mốc nào. Bấm “Tạo lộ trình mốc chuẩn” để sinh tự động.</p>{% endif %}
+  <ul class="timeline">
+  {% for m in e.milestones %}
+    {% set late = (not m.ngay_thuc_hien) and m.ngay_du_kien and m.ngay_du_kien < today %}
+    <li>
+      <span class="dot {{ 'done' if m.ngay_thuc_hien else ('late' if late) }}"></span>
+      <div>
+        <b>{{ m.loai }}</b>
+        {% if m.ngay_thuc_hien %}<span class="tag ok">xong {{ m.ngay_thuc_hien|d }}</span>
+        {% elif late %}<span class="tag bad">trễ – hạn {{ m.ngay_du_kien|d }}</span>
+        {% elif m.ngay_du_kien %}<span class="small">hạn dự kiến {{ m.ngay_du_kien|d }}</span>{% endif %}
+        {% if m.ket_qua %}<span class="tag blue">{{ m.ket_qua }}</span>{% endif %}
+        <div class="small">
+          {% if m.nguoi_danh_gia %}Hội đồng/đánh giá: {{ m.nguoi_danh_gia }}. {% endif %}
+          {% if m.gv_ngoai %}GV ngoài: {{ m.gv_ngoai }}. {% endif %}
+          {% if m.dot_thanh_toan %}Thanh toán đợt {{ m.dot_thanh_toan }}: {{ 'đã TT' if m.da_thanh_toan else 'chưa TT' }}. {% endif %}
+          {% if m.ghi_chu %}<br>{{ m.ghi_chu }}{% endif %}
+        </div>
+      </div>
+      <div class="nowrap">
+        {% if not m.ngay_thuc_hien %}
+        <form method="post" action="{{ url_for('milestone_done', mid=m.id) }}" style="display:inline">
+          <button class="btn sm" title="Đánh dấu hoàn thành hôm nay">✔ Xong</button></form>{% endif %}
+        <a class="btn sm" href="{{ url_for('milestone_edit', mid=m.id) }}">Sửa</a>
+      </div>
+    </li>
+  {% endfor %}
+  </ul>
+</div>
+
+<div class="card">
+  <h2 style="margin-top:0">Báo cáo 6 tháng</h2>
+  {% if not report_rows %}<p class="small">Chưa đến kỳ báo cáo nào (hoặc thiếu ngày QĐ / chu kỳ).</p>{% else %}
+  <table><thead><tr><th>Kỳ</th><th>Tình trạng</th><th>Ngày nộp</th><th>Ghi chú</th></tr></thead><tbody>
+  {% for r in report_rows %}
+    <tr><td><a href="{{ url_for('reports', ky=r.ky) }}">{{ r.ky|period }}</a></td>
+      <td>{% if r.rep.da_nop %}<span class="tag ok">đã nộp</span>{% else %}<span class="tag warn">chưa ghi nhận</span>{% endif %}</td>
+      <td>{{ r.rep.ngay_nop|d }}</td><td>{{ r.rep.ghi_chu or '' }}</td></tr>
+  {% endfor %}
+  </tbody></table>{% endif %}
+</div>
+{% endblock %}

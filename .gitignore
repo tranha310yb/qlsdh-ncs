@@ -1,0 +1,12 @@
+# Dữ liệu thật (thông tin cá nhân NCS) – KHÔNG đưa lên GitHub
+data/
+*.xlsx
+*.xls
+*.json.tmp
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.env

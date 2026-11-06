@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Cán bộ hướng dẫn{% endblock %}
+{% block content %}
+<div class="bar"><h1 class="grow">Cán bộ hướng dẫn <span class="small">({{ items|length }})</span></h1>
+  <a class="btn pri" href="{{ url_for('supervisor_edit') }}">+ Thêm cán bộ</a></div>
+<div class="tbl"><table>
+<thead><tr><th>Họ tên</th><th>Đơn vị</th><th>Trong/ngoài</th><th class="num">HD chính</th><th class="num">HD phụ</th><th class="num">Đang HD</th><th>Liên hệ</th></tr></thead>
+<tbody>
+{% for i in items %}
+<tr><td><a href="{{ url_for('supervisor_edit', cid=i.s.id) }}"><b>{{ sup_name(i.s) }}</b></a></td>
+  <td>{{ i.s.don_vi }}</td><td>{% if i.s.ngoai_truong %}<span class="tag">ngoài trường</span>{% endif %}</td>
+  <td class="num"><a href="{{ url_for('student_list', cbhd=i.s.id, all=1) }}">{{ i.hd1 }}</a></td><td class="num">{{ i.hd2 }}</td>
+  <td class="num"><b>{{ i.active }}</b></td>
+  <td class="small">{{ i.s.email }} {{ i.s.dien_thoai }}</td></tr>
+{% endfor %}
+</tbody></table></div>
+
+<div class="card" style="margin-top:18px">
+  <h2 style="margin-top:0">Gộp cán bộ trùng tên</h2>
+  <p class="small">Dùng khi một người bị ghi thành 2 bản ghi (ví dụ viết tên khác nhau trong Excel). Các NCS của bản ghi bị gộp sẽ chuyển sang bản ghi giữ lại.</p>
+  <form method="post" action="{{ url_for('supervisor_merge') }}" class="bar" onsubmit="return confirm('Gộp 2 bản ghi này?')">
+    Giữ lại <select name="keep">{% for i in items|sort(attribute='s.ho_ten') %}<option value="{{ i.s.id }}">{{ sup_name(i.s) }}</option>{% endfor %}</select>
+    gộp bản ghi <select name="drop">{% for i in items|sort(attribute='s.ho_ten') %}<option value="{{ i.s.id }}">{{ sup_name(i.s) }}</option>{% endfor %}</select>
+    <button class="btn">Gộp</button>
+  </form>
+</div>
+{% endblock %}

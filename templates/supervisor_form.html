@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Cán bộ{% endblock %}
+{% block content %}
+<h1>{{ 'Thêm cán bộ' if is_new else sup_name(s) }}</h1>
+<div class="card">
+<form class="f" method="post">
+  <div><label>Học hàm / học vị</label><input type="text" name="hoc_ham_hoc_vi" value="{{ s.hoc_ham_hoc_vi or '' }}" placeholder="PGS.TS"></div>
+  <div><label>Họ tên *</label><input type="text" name="ho_ten" value="{{ s.ho_ten or '' }}" required></div>
+  <div><label>Đơn vị</label><input type="text" name="don_vi" value="{{ s.don_vi or '' }}"></div>
+  <div><label>Email</label><input type="text" name="email" value="{{ s.email or '' }}"></div>
+  <div><label>Điện thoại</label><input type="text" name="dien_thoai" value="{{ s.dien_thoai or '' }}"></div>
+  <div style="align-self:end"><label class="inline"><input type="checkbox" name="ngoai_truong" {{ 'checked' if s.ngoai_truong }}> Ngoài trường</label></div>
+  <div class="full"><label>Ghi chú</label><textarea name="ghi_chu">{{ s.ghi_chu or '' }}</textarea></div>
+  <div class="full"><button class="btn pri">Lưu</button> <a class="btn" href="{{ url_for('supervisor_list') }}">Huỷ</a></div>
+</form>
+{% if not is_new %}
+<form method="post" action="{{ url_for('supervisor_delete', cid=s.id) }}" onsubmit="return confirm('Xoá cán bộ này?')" style="margin-top:14px"><button class="btn danger">Xoá cán bộ</button></form>
+{% endif %}
+</div>
+{% if students %}
+<h2>NCS đang / đã hướng dẫn ({{ students|length }})</h2>
+<div class="tbl"><table><thead><tr><th>Khoá</th><th>Họ tên</th><th>Vai trò</th><th>Đề tài</th><th>Trạng thái</th></tr></thead><tbody>
+{% for e in students %}<tr><td>{{ e.khoa }}</td><td><a href="{{ url_for('student_detail', sid=e.id) }}">{{ e.ho_ten }}</a></td>
+<td>{{ 'HD chính' if e.cbhd1_id==s.id else 'HD phụ' }}</td><td>{{ e.de_tai }}</td><td><span class="tag {{ 'blue' if e.active }}">{{ e.trang_thai }}</span></td></tr>{% endfor %}
+</tbody></table></div>
+{% endif %}
+{% endblock %}

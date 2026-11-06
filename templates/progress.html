@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Bảng tiến độ{% endblock %}
+{% block content %}
+<div class="bar"><h1 class="grow">Bảng tiến độ theo mốc</h1>
+<form method="get" class="bar" style="margin:0">
+  <select name="khoa" onchange="this.form.submit()"><option value="">Mọi khoá</option>
+  {% for k in khoas %}<option {{ 'selected' if f_khoa==k }}>{{ k }}</option>{% endfor %}</select>
+</form></div>
+<p class="sub"><span class="tag ok">ngày</span> đã xong · <span class="tag bad">ngày</span> trễ hạn · <span class="tag">ngày</span> hạn dự kiến. Bấm vào ô để sửa mốc.</p>
+<div class="tbl progress"><table>
+<thead><tr><th>NCS</th>{% for t in types %}<th>{{ t }}</th>{% endfor %}<th>Khác</th></tr></thead>
+<tbody>
+{% for e, cells in rows %}
+<tr>
+  <td class="nowrap"><a href="{{ url_for('student_detail', sid=e.id) }}"><b>{{ e.ho_ten }}</b></a><div class="small">{{ e.khoa }} · {{ e.nhom_cm }}</div></td>
+  {% for t in types %}{% set m = cells.get(t) %}
+    {% if m %}
+      {% set late = (not m.ngay_thuc_hien) and m.ngay_du_kien and m.ngay_du_kien < today %}
+      <td class="nowrap {{ 'cell-done' if m.ngay_thuc_hien else ('cell-late' if late else 'cell-plan') }}">
+        <a href="{{ url_for('milestone_edit', mid=m.id, next=request.full_path) }}" style="color:inherit">{{ (m.ngay_thuc_hien or m.ngay_du_kien)|d or '✓' }}</a></td>
+    {% else %}<td></td>{% endif %}
+  {% endfor %}
+  <td class="small">{% for m in e.milestones if m.loai not in types %}{{ m.loai }}{% if m.ngay_thuc_hien %} ✔{% endif %}<br>{% endfor %}</td>
+</tr>
+{% else %}<tr><td colspan="{{ types|length + 2 }}" class="small">Không có NCS đang theo dõi.</td></tr>{% endfor %}
+</tbody></table></div>
+{% endblock %}

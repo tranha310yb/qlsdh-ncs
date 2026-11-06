@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Hồ sơ NCS{% endblock %}
+{% block content %}
+<div class="bar"><h1 class="grow">Hồ sơ NCS <span class="small">({{ items|length }})</span></h1>
+  <a class="btn" href="{{ request.full_path }}{{ '&' if '?' in request.full_path else '?' }}export=1">Xuất Excel danh sách này</a>
+  <a class="btn pri" href="{{ url_for('student_edit') }}">+ Thêm NCS</a></div>
+
+<form class="bar" method="get">
+  <input type="search" name="q" value="{{ args.q }}" placeholder="Tìm tên, mã, đề tài, cơ quan, email…" style="min-width:280px">
+  <select name="khoa"><option value="">Mọi khoá</option>{% for k in khoas %}<option {{ 'selected' if args.khoa==k }}>{{ k }}</option>{% endfor %}</select>
+  <select name="nhom"><option value="">Mọi nhóm CM</option>{% for g in settings.groups %}<option {{ 'selected' if args.nhom==g }}>{{ g }}</option>{% endfor %}</select>
+  <select name="cbhd"><option value="">Mọi CBHD</option>{% for s in sups %}<option value="{{ s.id }}" {{ 'selected' if args.cbhd==s.id }}>{{ s.ho_ten }}</option>{% endfor %}</select>
+  <select name="tt"><option value="">Trạng thái: đang theo dõi</option>{% for t in settings.statuses %}<option {{ 'selected' if args.tt==t }}>{{ t }}</option>{% endfor %}</select>
+  <label class="inline"><input type="checkbox" name="all" value="1" {{ 'checked' if show_all }}> Gồm cả đã bảo vệ / hết hạn</label>
+  <button class="btn">Lọc</button> <a href="{{ url_for('student_list') }}" class="small">Xoá lọc</a>
+</form>
+
+<div class="tbl"><table>
+<thead><tr><th>Khoá</th><th>Mã NCS</th><th>Họ tên</th><th>Nhóm</th><th>Đề tài</th><th>CBHD</th>
+<th>Hạn kết thúc</th><th>Mốc gần nhất / tiếp theo</th><th>BC 6T</th><th>Trạng thái</th></tr></thead>
+<tbody>
+{% for e in items %}
+<tr>
+  <td>{{ e.khoa }}</td>
+  <td class="nowrap">{{ e.ma_ncs }}</td>
+  <td><a href="{{ url_for('student_detail', sid=e.id) }}"><b>{{ e.ho_ten }}</b></a><div class="small">{{ e.co_quan }}</div></td>
+  <td>{{ e.nhom_cm }}</td>
+  <td style="max-width:340px">{{ e.de_tai }}</td>
+  <td class="small" style="min-width:150px">{{ sup_name(e.cbhd1) }}{% if e.cbhd2 %}<br>{{ sup_name(e.cbhd2) }}{% if e.cbhd2_ngoai %} <span class="tag">ngoài</span>{% endif %}{% endif %}</td>
+  <td class="nowrap">{{ e.end_date|d }}
+    {% if e.active and e.months_left is not none %}<br>
+      {% if e.months_left < 0 %}<span class="tag bad">quá {{ -e.months_left }} th</span>
+      {% elif e.months_left <= settings.warn_months_before_end %}<span class="tag warn">còn {{ e.months_left }} th</span>
+      {% else %}<span class="small">còn {{ e.months_left }} th</span>{% endif %}
+    {% endif %}</td>
+  <td class="small" style="min-width:150px">
+    {% if e.last_milestone %}✔ {{ e.last_milestone.loai }}<br>{% endif %}
+    {% if e.next_milestone %}→ {{ e.next_milestone.loai }}{% if e.next_milestone.ngay_du_kien %} ({{ e.next_milestone.ngay_du_kien|d }}){% endif %}{% endif %}
+    {% if e.overdue_milestones %}<br><span class="tag bad">{{ e.overdue_milestones|length }} mốc trễ</span>{% endif %}
+  </td>
+  <td class="nowrap">{{ e.cycle|cycle }}{% if e.active and e.last_period %}<br>{% if e.last_period_ok %}<span class="tag ok">đã nộp</span>{% else %}<span class="tag warn">chưa nộp</span>{% endif %}{% endif %}</td>
+  <td><span class="tag {{ 'blue' if e.active else '' }}">{{ e.trang_thai }}</span></td>
+</tr>
+{% else %}
+<tr><td colspan="10" class="small">Không có NCS nào khớp điều kiện lọc.</td></tr>
+{% endfor %}
+</tbody></table></div>
+{% endblock %}

@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Mốc tiến độ{% endblock %}
+{% block content %}
+<h1>{{ 'Thêm mốc / hoạt động' if is_new else 'Sửa mốc: ' ~ m.loai }}</h1>
+<p class="sub">NCS: <a href="{{ url_for('student_detail', sid=st.id) }}">{{ st.ho_ten }}</a> ({{ st.ma_ncs or 'chưa có mã' }})</p>
+<div class="card">
+<form class="f" method="post">
+  <input type="hidden" name="student_id" value="{{ st.id }}">
+  <input type="hidden" name="next" value="{{ next }}">
+  <div><label>Loại mốc</label>
+    <select name="loai"><option value="">— chọn —</option>
+    {% for t in types %}<option {{ 'selected' if m.loai==t }}>{{ t }}</option>{% endfor %}
+    {% if m.loai and m.loai not in types %}<option selected>{{ m.loai }}</option>{% endif %}
+    </select></div>
+  <div><label>…hoặc nhập tên khác</label><input type="text" name="loai_khac" placeholder="VD: Hội thảo quốc tế"></div>
+  <div><label>Hạn dự kiến</label><input type="date" name="ngay_du_kien" value="{{ m.ngay_du_kien or '' }}"></div>
+  <div><label>Ngày thực hiện (bỏ trống = chưa xong)</label><input type="date" name="ngay_thuc_hien" value="{{ m.ngay_thuc_hien or '' }}"></div>
+  <div><label>Kết quả</label><input type="text" name="ket_qua" value="{{ m.ket_qua or '' }}" placeholder="VD: Đạt / Đạt có chỉnh sửa / Không đạt"></div>
+  <div class="full"><label>Hội đồng / người đánh giá</label><input type="text" name="nguoi_danh_gia" value="{{ m.nguoi_danh_gia or '' }}"></div>
+  <div class="full"><label>GV ngoài trường tham gia</label><input type="text" name="gv_ngoai" value="{{ m.gv_ngoai or '' }}" placeholder="Họ tên, đơn vị"></div>
+  <div><label>Đợt thanh toán</label><input type="text" name="dot_thanh_toan" value="{{ m.dot_thanh_toan or '' }}" placeholder="VD: 9.2026"></div>
+  <div style="align-self:end"><label class="inline"><input type="checkbox" name="da_thanh_toan" {{ 'checked' if m.da_thanh_toan }}> Đã thanh toán</label></div>
+  <div class="full"><label>Ghi chú</label><textarea name="ghi_chu">{{ m.ghi_chu or '' }}</textarea></div>
+  <div class="full"><button class="btn pri">Lưu</button>
+    <a class="btn" href="{{ next or url_for('student_detail', sid=st.id) }}">Huỷ</a></div>
+</form>
+{% if not is_new %}
+<form method="post" action="{{ url_for('milestone_delete', mid=m.id) }}" onsubmit="return confirm('Xoá mốc này?')" style="margin-top:14px">
+  <input type="hidden" name="next" value="{{ next }}"><button class="btn danger">Xoá mốc</button></form>
+{% endif %}
+</div>
+{% endblock %}

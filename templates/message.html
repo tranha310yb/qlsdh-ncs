@@ -1,0 +1,6 @@
+{% extends "base.html" %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+<h1>{{ title }}</h1>
+<div class="card">{{ msg }} <a href="{{ url_for('dashboard') }}">Về trang tổng quan</a></div>
+{% endblock %}

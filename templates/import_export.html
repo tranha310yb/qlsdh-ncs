@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Nhập / Xuất / Sao lưu{% endblock %}
+{% block content %}
+<h1>Nhập / Xuất / Sao lưu</h1>
+<p class="sub">Dữ liệu hiện có: {{ counts.students }} NCS · {{ counts.supervisors }} cán bộ · {{ counts.milestones }} mốc · {{ counts.reports }} báo cáo.
+Thư mục dữ liệu: <code>{{ data_dir }}</code></p>
+
+{% if result %}
+<div class="card">
+  <h2 style="margin-top:0">Kết quả nhập “{{ result.file }}”</h2>
+  <p>Thêm mới <b>{{ result.stats.added }}</b> NCS · cập nhật <b>{{ result.stats.updated }}</b> NCS ·
+     thêm <b>{{ result.stats.supervisors_added }}</b> cán bộ · thêm <b>{{ result.stats.milestones_added }}</b> mốc/hoạt động.</p>
+  {% if result.backup %}<p class="small">Đã tự sao lưu dữ liệu trước khi nhập: {{ result.backup }}</p>{% endif %}
+  {% if result.warnings %}<h3>Cần kiểm tra lại ({{ result.warnings|length }})</h3>
+  <ul class="alert-list">{% for w in result.warnings %}<li>{{ w }}</li>{% endfor %}</ul>{% endif %}
+  <p><a class="btn pri" href="{{ url_for('dashboard') }}">Xem tổng quan</a> <a class="btn" href="{{ url_for('supervisor_list') }}">Rà soát danh sách cán bộ</a></p>
+</div>
+{% endif %}
+
+<div class="grid g2">
+<div class="card">
+  <h2 style="margin-top:0">Nhập từ Excel</h2>
+  <p class="small">Dùng file theo mẫu “Theo dõi tiến độ NCS” hiện có (dòng nhóm “NCS 2025”, dòng tiêu đề có “Họ tên NCS”).
+  Có thể nhập lại nhiều lần: NCS trùng mã sẽ được cập nhật, không bị nhân đôi. Ứng dụng tự sao lưu trước mỗi lần nhập.</p>
+  <form method="post" enctype="multipart/form-data">
+    <input type="file" name="file" accept=".xlsx,.xlsm" required>
+    <p><button class="btn pri">Nhập dữ liệu</button></p>
+  </form>
+</div>
+<div class="card">
+  <h2 style="margin-top:0">Xuất & sao lưu</h2>
+  <p><a class="btn" href="{{ url_for('export_excel') }}">Xuất toàn bộ ra Excel</a>
+     <a class="btn" href="{{ url_for('download_db') }}">Tải file dữ liệu (JSON)</a></p>
+  <form method="post" action="{{ url_for('backup_now') }}"><button class="btn">Sao lưu ngay</button></form>
+  <p class="small">Ứng dụng tự sao lưu mỗi ngày một bản vào <code>data/backups/</code> (giữ 60 bản).
+  Muốn khôi phục: tắt ứng dụng, chép bản sao lưu đè lên <code>data/db.json</code>, rồi chạy lại.</p>
+  {% if backups %}<div class="small"><b>Bản sao lưu gần đây:</b><br>{{ backups|join('<br>'|safe) }}</div>{% endif %}
+</div>
+</div>
+{% endblock %}

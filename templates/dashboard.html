@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block title %}Tổng quan{% endblock %}
+{% block content %}
+<h1>Tổng quan</h1>
+<p class="sub">Hôm nay {{ today|d }} · cảnh báo hết hạn trước {{ settings.warn_months_before_end }} tháng</p>
+
+<div class="grid g4">
+  <div class="stat"><b>{{ active }}</b><span>NCS đang theo dõi (tổng {{ total }})</span></div>
+  <div class="stat {{ 'bad' if al.expired }}"><b>{{ al.expired|length }}</b><span>Đã quá hạn đào tạo</span></div>
+  <div class="stat {{ 'warn' if al.ending }}"><b>{{ al.ending|length }}</b><span>Sắp hết hạn</span></div>
+  <div class="stat {{ 'warn' if al.overdue }}"><b>{{ al.overdue|length }}</b><span>Có mốc trễ hạn</span></div>
+  <div class="stat {{ 'warn' if al.no_report }}"><b>{{ al.no_report|length }}</b><span>Chưa nộp BC 6 tháng kỳ gần nhất</span></div>
+  <div class="stat"><b>{{ unpaid }}</b><span><a href="{{ url_for('payments') }}">Hoạt động chưa thanh toán</a></span></div>
+</div>
+
+<div class="grid g2" style="margin-top:16px">
+  <div class="card">
+    <h2 style="margin-top:0">Cảnh báo hạn đào tạo</h2>
+    {% if not al.expired and not al.ending %}<p class="small">Không có NCS nào sắp hoặc đã hết hạn.</p>{% endif %}
+    <ul class="alert-list">
+    {% for e in al.expired %}
+      <li><a href="{{ url_for('student_detail', sid=e.id) }}">{{ e.ho_ten }}</a> <span class="small">({{ e.khoa }})</span>
+        <span class="tag bad">quá hạn {{ -e.months_left }} tháng</span> <span class="small">hạn {{ e.end_date|d }}</span></li>
+    {% endfor %}
+    {% for e in al.ending %}
+      <li><a href="{{ url_for('student_detail', sid=e.id) }}">{{ e.ho_ten }}</a> <span class="small">({{ e.khoa }})</span>
+        <span class="tag warn">còn {{ e.months_left }} tháng</span> <span class="small">hạn {{ e.end_date|d }}</span></li>
+    {% endfor %}
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2 style="margin-top:0">Mốc tiến độ trễ hạn</h2>
+    {% if not al.overdue %}<p class="small">Không có mốc nào trễ hạn.</p>{% endif %}
+    <ul class="alert-list">
+    {% for e in al.overdue %}
+      <li><a href="{{ url_for('student_detail', sid=e.id) }}">{{ e.ho_ten }}</a>:
+        {% for m in e.overdue_milestones %}<span class="tag bad">{{ m.loai }} ({{ m.ngay_du_kien|d }})</span> {% endfor %}</li>
+    {% endfor %}
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2 style="margin-top:0">Chưa nộp báo cáo 6 tháng (kỳ gần nhất)</h2>
+    {% if not al.no_report %}<p class="small">Tất cả đã nộp.</p>{% endif %}
+    <ul class="alert-list">
+    {% for e in al.no_report %}
+      <li><a href="{{ url_for('student_detail', sid=e.id) }}">{{ e.ho_ten }}</a>
+        <a class="tag warn" href="{{ url_for('reports', ky=e.last_period) }}">kỳ {{ e.last_period|period }}</a></li>
+    {% endfor %}
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2 style="margin-top:0">Hồ sơ thiếu thông tin</h2>
+    <p class="small">Thiếu Mã NCS, Ngày QĐ công nhận, thời gian đào tạo hoặc CBHD 1.</p>
+    <ul class="alert-list">
+    {% for e in al.missing_data %}
+      <li><a href="{{ url_for('student_edit', sid=e.id) }}">{{ e.ho_ten }}</a> <span class="small">({{ e.khoa }})</span>
+        {% if not e.ma_ncs %}<span class="tag">thiếu mã</span>{% endif %}
+        {% if not e.ngay_qd %}<span class="tag">thiếu ngày QĐ</span>{% endif %}
+        {% if not e.cbhd1_id %}<span class="tag">thiếu CBHD</span>{% endif %}
+        {% if not e.thoi_gian_dao_tao %}<span class="tag">thiếu thời gian ĐT</span>{% endif %}</li>
+    {% endfor %}
+    </ul>
+  </div>
+</div>
+
+<div class="grid g2">
+  <div class="card"><h2 style="margin-top:0">NCS đang theo dõi theo khoá</h2>
+    {% for k, n in by_khoa %}<div class="kv"><a href="{{ url_for('student_list', khoa=k) }}">NCS {{ k }}</a><b>{{ n }}</b></div>{% endfor %}
+  </div>
+  <div class="card"><h2 style="margin-top:0">Theo nhóm chuyên môn / trạng thái</h2>
+    {% for k, n in by_group %}<div class="kv"><span>{{ k }}</span><b>{{ n }}</b></div>{% endfor %}
+    <div style="height:10px"></div>
+    {% for k, n in by_status %}<div class="kv"><a href="{{ url_for('student_list', tt=k) }}">{{ k }}</a><b>{{ n }}</b></div>{% endfor %}
+  </div>
+</div>
+
+{% if total == 0 %}
+<div class="card"><b>Chưa có dữ liệu.</b> Vào <a href="{{ url_for('import_export') }}">Nhập / Xuất</a> để nhập file Excel theo dõi NCS hiện có,
+hoặc <a href="{{ url_for('student_edit') }}">thêm NCS mới</a>.</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Thêm NCS' if is_new else 'Sửa hồ sơ' }}{% endblock %}
+{% block content %}
+<h1>{{ 'Thêm NCS mới' if is_new else 'Sửa hồ sơ: ' ~ st.ho_ten }}</h1>
+<p class="sub">Các trường có dấu * là bắt buộc. Ngày có thể chọn trên lịch.</p>
+<div class="card">
+<form class="f" method="post">
+  <div><label>Họ tên NCS *</label><input type="text" name="ho_ten" value="{{ st.ho_ten or '' }}" required></div>
+  <div><label>Mã NCS</label><input type="text" name="ma_ncs" value="{{ st.ma_ncs or '' }}" placeholder="VD: 20250105D"></div>
+  <div><label>Khoá (năm)</label><input type="text" name="khoa" value="{{ st.khoa or '' }}" placeholder="VD: 2025"></div>
+  <div><label>Nhóm chuyên môn</label>
+    <select name="nhom_cm"><option value="">—</option>
+    {% for g in settings.groups %}<option {{ 'selected' if st.nhom_cm==g }}>{{ g }}</option>{% endfor %}</select></div>
+  <div><label>Ngày sinh</label><input type="date" name="ngay_sinh" value="{{ st.ngay_sinh or '' }}"></div>
+  <div><label>Cơ quan công tác</label><input type="text" name="co_quan" value="{{ st.co_quan or '' }}"></div>
+  <div class="full"><label>Đề tài</label><textarea name="de_tai">{{ st.de_tai or '' }}</textarea></div>
+
+  <div><label>Cán bộ hướng dẫn 1</label>
+    <select name="cbhd1_id"><option value="">—</option>
+    {% for s in sups %}<option value="{{ s.id }}" {{ 'selected' if st.cbhd1_id==s.id }}>{{ sup_name(s) }}</option>{% endfor %}</select></div>
+  <div><label>Cán bộ hướng dẫn 2</label>
+    <select name="cbhd2_id"><option value="">—</option>
+    {% for s in sups %}<option value="{{ s.id }}" {{ 'selected' if st.cbhd2_id==s.id }}>{{ sup_name(s) }}</option>{% endfor %}</select>
+    <label class="inline" style="margin-top:6px"><input type="checkbox" name="cbhd2_ngoai" {{ 'checked' if st.cbhd2_ngoai }}> CBHD 2 ngoài trường (cột N)</label></div>
+  <div class="small" style="align-self:end">Chưa có tên cán bộ trong danh sách? <a href="{{ url_for('supervisor_edit') }}" target="_blank">Thêm cán bộ</a> rồi tải lại trang.</div>
+
+  <div><label>Email cá nhân</label><input type="text" name="email_ca_nhan" value="{{ st.email_ca_nhan or '' }}"></div>
+  <div><label>Email SIS</label><input type="text" name="email_sis" value="{{ st.email_sis or '' }}"></div>
+  <div><label>Điện thoại</label><input type="text" name="dien_thoai" value="{{ st.dien_thoai or '' }}"></div>
+
+  <div><label>Số QĐ công nhận NCS</label><input type="text" name="so_qd" value="{{ st.so_qd or '' }}"></div>
+  <div><label>Ngày QĐ công nhận</label><input type="date" name="ngay_qd" value="{{ st.ngay_qd or '' }}"></div>
+  <div><label>Thời gian đào tạo (năm)</label><input type="number" step="0.5" min="0" name="thoi_gian_dao_tao" value="{{ st.thoi_gian_dao_tao if st.thoi_gian_dao_tao is not none else '' }}"></div>
+  <div><label>Gia hạn đến (nếu có)</label><input type="date" name="gia_han_den" value="{{ st.gia_han_den or '' }}">
+    <div class="small">Nếu nhập, ngày này thay cho hạn tính từ QĐ.</div></div>
+  <div><label>Trạng thái</label>
+    <select name="trang_thai">{% for t in settings.statuses %}<option {{ 'selected' if st.trang_thai==t }}>{{ t }}</option>{% endfor %}</select></div>
+  <div class="full"><label>Chu kỳ báo cáo 6 tháng (chọn 2 tháng)</label>
+    {% set cyc = st.chu_ky_bc or [] %}
+    {% for mth in range(1,13) %}<label class="inline"><input type="checkbox" name="chu_ky_bc" value="{{ mth }}" {{ 'checked' if mth in cyc }}> T{{ mth }}</label>{% endfor %}
+    <div class="small">Bỏ trống: tự lấy tháng của ngày QĐ và 6 tháng sau đó.</div></div>
+  <div class="full"><label>Kế hoạch tiếp theo</label><input type="text" name="ke_hoach" value="{{ st.ke_hoach or '' }}"></div>
+  <div class="full"><label>Ghi chú</label><textarea name="ghi_chu">{{ st.ghi_chu or '' }}</textarea></div>
+  {% if is_new %}<div class="full"><label class="inline"><input type="checkbox" name="tao_lo_trinh" checked> Tự tạo lộ trình mốc chuẩn (theo Cài đặt) từ ngày QĐ</label></div>{% endif %}
+  <div class="full"><button class="btn pri">Lưu</button>
+    <a class="btn" href="{{ url_for('student_detail', sid=st.id) if st.id else url_for('student_list') }}">Huỷ</a></div>
+</form>
+</div>
+{% endblock %}

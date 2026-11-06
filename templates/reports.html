@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Báo cáo 6 tháng{% endblock %}
+{% block content %}
+<div class="bar"><h1 class="grow">Báo cáo 6 tháng – kỳ {{ period|period }}</h1>
+  <form method="get" class="bar" style="margin:0">
+    <select name="ky" onchange="this.form.submit()">
+      {% for p in months %}<option value="{{ p }}" {{ 'selected' if p==period }}>{{ p|period }}</option>{% endfor %}
+    </select></form>
+  <a class="btn" href="{{ url_for('reports', ky=period, export=1) }}">Xuất Excel</a></div>
+<p class="sub">Danh sách NCS đang theo dõi có chu kỳ báo cáo rơi vào tháng {{ period.split('-')[1]|int }}. Đã nộp: <b>{{ done }}/{{ rows|length }}</b>.</p>
+{% if rows %}
+<form method="post">
+<input type="hidden" name="ky" value="{{ period }}">
+<div class="tbl"><table>
+<thead><tr><th>Khoá</th><th>Họ tên</th><th>CBHD 1</th><th>Đã nộp</th><th>Ngày nộp</th><th>Ghi chú</th></tr></thead>
+<tbody>
+{% for r in rows %}{% set sid = r.st.id %}
+<tr><td>{{ r.st.khoa }}</td><td><a href="{{ url_for('student_detail', sid=sid) }}">{{ r.st.ho_ten }}</a></td>
+<td class="small">{{ sup_name(r.cbhd1) }}</td>
+<td><input type="checkbox" name="nop_{{ sid }}" {{ 'checked' if r.rep.da_nop }}></td>
+<td><input type="date" name="ngay_{{ sid }}" value="{{ r.rep.ngay_nop or '' }}" style="width:150px"></td>
+<td><input type="text" name="note_{{ sid }}" value="{{ r.rep.ghi_chu or '' }}"></td></tr>
+{% endfor %}
+</tbody></table></div>
+<p><button class="btn pri">Lưu kỳ {{ period|period }}</button> <span class="small">Tích “Đã nộp” mà để trống ngày thì lấy ngày hôm nay.</span></p>
+</form>
+{% else %}<div class="card small">Không có NCS nào phải báo cáo trong kỳ này.</div>{% endif %}
+{% endblock %}

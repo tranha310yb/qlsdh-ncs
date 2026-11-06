@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Cài đặt{% endblock %}
+{% block content %}
+<h1>Cài đặt</h1>
+<p class="sub">Danh mục dùng chung cho toàn ứng dụng. Mỗi dòng một giá trị.</p>
+<div class="card">
+<form class="f" method="post">
+  <div class="full"><label>Lộ trình mốc chuẩn – định dạng: <code>Tên mốc | số tháng sau ngày QĐ</code></label>
+    <textarea name="milestone_types" style="min-height:280px;font-family:Consolas,monospace">{% for t in s.milestone_types %}{{ t.name }} | {{ t.offset_months }}
+{% endfor %}</textarea>
+    <div class="small">Dùng khi bấm “Tạo lộ trình mốc chuẩn”. Hãy chỉnh cho khớp quy định đào tạo tiến sĩ hiện hành của Trường. Thứ tự dòng = thứ tự cột trên Bảng tiến độ.</div></div>
+  <div><label>Nhóm chuyên môn</label><textarea name="groups" style="min-height:120px">{{ s.groups|join('\n') }}</textarea></div>
+  <div><label>Trạng thái NCS</label><textarea name="statuses" style="min-height:180px">{{ s.statuses|join('\n') }}</textarea></div>
+  <div><label>Trạng thái được theo dõi & cảnh báo</label>
+    {% for t in s.statuses %}<label class="inline" style="display:flex"><input type="checkbox" name="active_statuses" value="{{ t }}" {{ 'checked' if t in s.active_statuses }}> {{ t }}</label>{% endfor %}</div>
+  <div><label>Cảnh báo sắp hết hạn trước (tháng)</label><input type="number" min="1" name="warn_months_before_end" value="{{ s.warn_months_before_end }}"></div>
+  <div class="full"><button class="btn pri">Lưu cài đặt</button></div>
+</form>
+</div>
+{% endblock %}

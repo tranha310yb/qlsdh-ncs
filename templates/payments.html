@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Hội đồng & thanh toán{% endblock %}
+{% block content %}
+<div class="bar"><h1 class="grow">Hội đồng & thanh toán{% if batch %} – đợt {{ batch }}{% endif %}</h1>
+  <form method="get" class="bar" style="margin:0">
+    <select name="dot" onchange="this.form.submit()">
+      {% for b in batches %}<option {{ 'selected' if b==batch }}>{{ b }}</option>{% endfor %}
+      {% if not batches %}<option value="">(chưa có đợt nào)</option>{% endif %}
+    </select>
+    <label class="inline"><input type="checkbox" name="chua" value="1" {{ 'checked' if only_unpaid }} onchange="this.form.submit()"> Chỉ mục chưa thanh toán</label>
+  </form>
+  <a class="btn" href="{{ url_for('payments', dot=batch, chua='1' if only_unpaid else '', export=1) }}">Xuất Excel</a></div>
+<p class="sub">Các mốc / hoạt động được gán “Đợt thanh toán”. Gán đợt cho một hoạt động trong màn hình sửa mốc của NCS.</p>
+{% if ms %}
+<form method="post">
+<input type="hidden" name="dot" value="{{ batch }}"><input type="hidden" name="chua" value="{{ '1' if only_unpaid else '' }}">
+<div class="tbl"><table>
+<thead><tr><th>Khoá</th><th>NCS</th><th>Hoạt động</th><th>Ngày</th><th>Hội đồng / GV ngoài</th><th>Ghi chú</th><th>Đã TT</th><th></th></tr></thead>
+<tbody>
+{% for m in ms %}{% set st = stmap.get(m.student_id, {}) %}
+<tr><td>{{ st.khoa }}</td><td><a href="{{ url_for('student_detail', sid=m.student_id) }}">{{ st.ho_ten }}</a></td>
+<td>{{ m.loai }}</td><td class="nowrap">{{ (m.ngay_thuc_hien or m.ngay_du_kien)|d }}</td>
+<td class="small">{{ m.nguoi_danh_gia }}{% if m.nguoi_danh_gia and m.gv_ngoai %}<br>{% endif %}{{ m.gv_ngoai }}</td>
+<td class="small" style="max-width:300px">{{ m.ghi_chu }}</td>
+<td><input type="checkbox" name="paid_{{ m.id }}" {{ 'checked' if m.da_thanh_toan }}></td>
+<td><a class="btn sm" href="{{ url_for('milestone_edit', mid=m.id, next=request.full_path) }}">Sửa</a></td></tr>
+{% endfor %}
+</tbody></table></div>
+<p><button class="btn pri">Lưu trạng thái thanh toán</button> <span class="small">{{ ms|selectattr('da_thanh_toan')|list|length }}/{{ ms|length }} đã thanh toán</span></p>
+</form>
+{% else %}<div class="card small">Không có mục nào.</div>{% endif %}
+{% endblock %}
